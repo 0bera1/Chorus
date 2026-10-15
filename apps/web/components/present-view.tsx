@@ -106,9 +106,6 @@ export function PresentView({ code }: { code: string }) {
               {!hasResults && slide.type !== 'qa' && slide.settings.votingOpen && (
                 <p className="text-center text-2xl text-muted">{T.results.empty}</p>
               )}
-              {slide.type === 'qa' && hasResults && state.results && (
-                <ResultsChart slide={slide} results={state.results.data} large />
-              )}
             </motion.div>
           ) : (
             <motion.div key="lobby" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-6 text-center">
