@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { APP_URL } from '@/lib/config';
 import { T } from '@/lib/strings';
@@ -15,6 +15,15 @@ export function PresentView({ code }: { code: string }) {
   const hostKey = getHostKey(code);
   const { state, actions } = useRoom({ code, role: 'host', hostKey: hostKey ?? undefined, enabled: Boolean(hostKey) });
   const joinUrl = `${APP_URL}/j/${code}`;
+
+  // Lobi açılır açılmaz ilk slayt gösterilir; sunum sahibi beklemek zorunda kalmaz
+  const openedFirstSlide = useRef(false);
+  useEffect(() => {
+    if (openedFirstSlide.current) return;
+    if (state.conn !== 'connected' || state.status !== 'lobby' || state.slideCount === 0) return;
+    openedFirstSlide.current = true;
+    void actions.setSlide(0);
+  }, [actions, state.conn, state.status, state.slideCount]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
