@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { and, asc, count, eq } from 'drizzle-orm';
+import { and, asc, count, eq, gt } from 'drizzle-orm';
 import type { PublicSlide, RoomSnapshot, SlideResults, VotePayload } from '@chorus/shared';
 import { MAX_PARTICIPANTS_PER_ROOM, RESULTS_BATCH_INTERVAL_MS } from '@chorus/shared';
 import type { Server, Socket } from 'socket.io';
@@ -24,6 +24,7 @@ export interface SocketSession {
 
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 const VOTE_RATE_LIMIT = { limit: 10, windowMs: 10_000 };
+const QA_DUPLICATE_WINDOW_MS = 30_000;
 const MAX_ROOM_PARTICIPANTS = Math.min(config.roomMaxParticipants, MAX_PARTICIPANTS_PER_ROOM);
 
 @Injectable()
@@ -198,6 +199,22 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
 
     const clean = sanitizeText(text);
     if (clean.length < 3) throw AppError.badRequest('Soru çok kısa');
+
+    // Aynı katılımcı aynı soruyu kısa sürede tekrar gönderirse (zaman aşımı sonrası yeniden deneme gibi)
+    // yeni kayıt açılmaz; mevcut soru döner. Böylece tekrar gönderim soruyu çoğaltmaz.
+    const [recent] = await this.db
+      .select({ id: qaQuestions.id })
+      .from(qaQuestions)
+      .where(
+        and(
+          eq(qaQuestions.roomId, runtime.roomId),
+          eq(qaQuestions.participantId, session.participantId!),
+          eq(qaQuestions.text, clean),
+          gt(qaQuestions.createdAt, new Date(Date.now() - QA_DUPLICATE_WINDOW_MS)),
+        ),
+      )
+      .limit(1);
+    if (recent) return { id: recent.id };
 
     const [row] = await this.db
       .insert(qaQuestions)
