@@ -124,23 +124,31 @@ function ScaleChart({
   );
 }
 
+/**
+ * Kelime bulutu: boyut, sayıya göre font-size ile verilir (transform değil), böylece
+ * flex akışı kelimelerin gerçek kutularını hesaplar ve kelimeler üst üste binmez.
+ */
 function WordCloud({ words, large }: { words: { word: string; count: number }[]; large: boolean }) {
   if (words.length === 0) return <p className="text-muted">{T.results.empty}</p>;
-  const max = Math.max(...words.map((w) => w.count));
+  const counts = words.map((w) => w.count);
+  const min = Math.min(...counts);
+  const max = Math.max(...counts);
+  const [minRem, maxRem] = large ? [1.25, 4] : [0.95, 1.9];
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-center">
+    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center leading-tight">
       <AnimatePresence>
         {words.map((w) => {
-          const scale = 0.9 + (w.count / max) * (large ? 2.6 : 1.2);
+          const ratio = max === min ? 1 : (w.count - min) / (max - min);
+          const size = minRem + ratio * (maxRem - minRem);
           return (
             <motion.span
               key={w.word}
               layout
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="font-bold text-accent"
-              style={{ fontSize: `${large ? 2 : 1}rem` }}
+              style={{ fontSize: `${size.toFixed(2)}rem` }}
             >
               {w.word}
             </motion.span>

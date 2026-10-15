@@ -81,6 +81,7 @@ export const T = {
   ended: {
     title: 'Sunum sona erdi',
     body: 'Katıldığın için teşekkürler!',
+    redirect: (seconds: number) => `${seconds} saniye içinde ana sayfaya yönlendirileceksin.`,
   },
 
   errors: {

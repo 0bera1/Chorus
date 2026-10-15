@@ -177,14 +177,21 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [upvoted, setUpvoted] = useState<Set<string>>(() => new Set());
+  const [sending, setSending] = useState(false);
 
   const ask = async (e: FormEvent) => {
     e.preventDefault();
-    if (text.trim().length < 3) return;
+    // Gönderim sürerken tekrar tıklama (ya da Enter) aynı soruyu ikinci kez kaydetmesin
+    if (sending || text.trim().length < 3) return;
+    setSending(true);
     setError(null);
-    const res = await onAsk(text.trim());
-    if (res.ok) setText('');
-    else setError(errorMessageFor(res.error?.code, res.error?.message));
+    try {
+      const res = await onAsk(text.trim());
+      if (res.ok) setText('');
+      else setError(errorMessageFor(res.error?.code, res.error?.message));
+    } finally {
+      setSending(false);
+    }
   };
 
   const upvote = async (id: string) => {
@@ -208,7 +215,7 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
         />
         <button
           type="submit"
-          disabled={text.trim().length < 3}
+          disabled={sending || text.trim().length < 3}
           className="min-h-14 rounded-2xl bg-accent px-6 text-lg font-bold text-accent-fg disabled:opacity-50"
         >
           {T.qa.ask}

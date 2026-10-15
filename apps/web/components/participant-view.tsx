@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { T, errorMessageFor } from '@/lib/strings';
 import { useRoom, type ConnState } from '@/lib/use-room';
@@ -25,7 +26,7 @@ export function ParticipantView({ code }: { code: string }) {
   if (state.ended) {
     return (
       <Shell code={code} conn="connected" count={null}>
-        <Card title={T.ended.title} body={T.ended.body} />
+        <EndedCard />
       </Shell>
     );
   }
@@ -177,6 +178,25 @@ function WaitingCard() {
       <p className="max-w-xs text-muted">{T.waiting.body}</p>
     </div>
   );
+}
+
+/** Sunum bitince gösterilir; geri sayım bitince katılımcı ana sayfaya yönlendirilir. */
+const END_REDIRECT_SECONDS = 5;
+
+function EndedCard() {
+  const router = useRouter();
+  const [seconds, setSeconds] = useState(END_REDIRECT_SECONDS);
+
+  useEffect(() => {
+    if (seconds <= 0) {
+      router.replace('/');
+      return;
+    }
+    const timer = setTimeout(() => setSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [seconds, router]);
+
+  return <Card title={T.ended.title} body={`${T.ended.body} ${T.ended.redirect(Math.max(seconds, 0))}`} />;
 }
 
 function Card({ title, body }: { title: string; body: string }) {
