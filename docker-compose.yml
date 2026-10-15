@@ -1,0 +1,22 @@
+name: chorus
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chorus
+      POSTGRES_PASSWORD: chorus
+      POSTGRES_DB: chorus
+    ports:
+      - "5432:5432"
+    volumes:
+      - chorus-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chorus -d chorus"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  chorus-db:
