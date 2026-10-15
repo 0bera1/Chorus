@@ -1,0 +1,78 @@
+@import 'tailwindcss';
+
+/*
+ * Chorus tema tokenları. Tek vurgu rengi (mor) + nötr tonlar.
+ * Açık tema varsayılan; koyu tema sistem tercihine veya data-theme="dark" ile gelir.
+ */
+:root {
+  --bg: #f7f5ff;
+  --surface: #ffffff;
+  --fg: #17142a;
+  --muted: #5f5b75;
+  --line: #e3dfef;
+  --accent: #6d3bf5;
+  --accent-fg: #ffffff;
+  --accent-soft: #ece5ff;
+  --success: #0f9d6b;
+  --shadow: 0 10px 30px -12px rgb(40 20 90 / 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0d0b1a;
+    --surface: #17142a;
+    --fg: #f5f3ff;
+    --muted: #a7a2c2;
+    --line: #2c2847;
+    --accent: #a98bff;
+    --accent-fg: #0d0b1a;
+    --accent-soft: #241f42;
+    --success: #4ad8a0;
+    --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d0b1a;
+  --surface: #17142a;
+  --fg: #f5f3ff;
+  --muted: #a7a2c2;
+  --line: #2c2847;
+  --accent: #a98bff;
+  --accent-fg: #0d0b1a;
+  --accent-soft: #241f42;
+  --success: #4ad8a0;
+  --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --shadow-card: var(--shadow);
+  --font-sans: var(--font-geist-sans, system-ui), 'Segoe UI', Roboto, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
