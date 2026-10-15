@@ -5,7 +5,6 @@ import { ZodPipe } from '../common/zod.pipe';
 import { RoomsService } from './rooms.service';
 
 const uuidPipe = new ZodPipe(z.string().uuid('Geçersiz kimlik'));
-const exportQueryPipe = new ZodPipe(z.object({ format: z.enum(['csv', 'json']).default('json') }));
 const roomCodePipe = new ZodPipe(z.string().trim().length(6, 'Oda kodu 6 haneli olmalı'));
 
 @Controller()
@@ -25,7 +24,7 @@ export class RoomsController {
   @Get('rooms/:id/export')
   async export(
     @Param('id', uuidPipe) id: string,
-    @Query(exportQueryPipe) query: { format: 'csv' | 'json' },
+    @Query(new ZodPipe(z.object({ format: z.enum(['csv', 'json']).default('json') }))) query: { format: 'csv' | 'json' },
     @Headers('x-host-key') hostKey: string | undefined,
     @Res({ passthrough: true }) res: Response,
   ) {

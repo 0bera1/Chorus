@@ -4,6 +4,7 @@ import type { PublicSlide, SlideResults, VotePayload } from '@chorus/shared';
 export function sanitizeText(input: string): string {
   return input
     .replace(/<[^>]*>/g, '')
+    // eslint-disable-next-line no-control-regex -- control characters are the point of this filter
     .replace(/[\u0000-\u001F\u007F]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
