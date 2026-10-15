@@ -20,6 +20,5 @@ export function QrCode({ value, size = 160, label }: { value: string; size?: num
   if (!src) {
     return <div style={{ width: size, height: size }} className="animate-pulse rounded-2xl bg-accent-soft" aria-hidden />;
   }
-  // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} width={size} height={size} alt={label} className="rounded-2xl bg-white p-2" />;
 }

@@ -1,4 +1,12 @@
+# Chorus: tek komutla tam yığın.  `docker compose up --build`  ->  http://localhost
+#
+# Canlıya alırken:
+#   SITE_ADDRESS=chorus.example.com
+#   PUBLIC_URL=https://chorus.example.com
+#   TOKEN_SECRET=<uzun rastgele değer>   (zorunlu, aşağıdaki varsayılan yalnızca geliştirme içindir)
 name: chorus
+
+x-public-url: &public-url ${PUBLIC_URL:-http://localhost}
 
 services:
   db:
@@ -8,8 +16,6 @@ services:
       POSTGRES_USER: chorus
       POSTGRES_PASSWORD: chorus
       POSTGRES_DB: chorus
-    ports:
-      - "5432:5432"
     volumes:
       - chorus-db:/var/lib/postgresql/data
     healthcheck:
@@ -18,5 +24,58 @@ services:
       timeout: 3s
       retries: 10
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgres://chorus:chorus@db:5432/chorus
+      TOKEN_SECRET: ${TOKEN_SECRET:-dev-only-change-me-please}
+      CORS_ORIGINS: *public-url
+      NEXT_PUBLIC_APP_URL: *public-url
+      ROOM_IDLE_HOURS: 6
+      ROOM_MAX_PARTICIPANTS: 500
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # REST, Caddy üzerinden /api önekiyle; Socket.IO aynı kökte /socket.io ile
+        NEXT_PUBLIC_API_URL: ${PUBLIC_URL:-http://localhost}/api
+        NEXT_PUBLIC_WS_URL: *public-url
+        NEXT_PUBLIC_APP_URL: *public-url
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-http://localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
 volumes:
   chorus-db:
+  caddy-data:
+  caddy-config:

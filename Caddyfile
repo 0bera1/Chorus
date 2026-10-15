@@ -1,0 +1,20 @@
+# Chorus tek giriş noktası.
+# - /api/*        -> API (önek kaldırılır)
+# - /socket.io/*  -> API (Socket.IO, WebSocket yükseltmesi Caddy tarafından otomatik)
+# - diğer her şey -> Next.js
+# SITE: yerelde http://localhost, canlıda kendi alan adın (Caddy otomatik HTTPS alır).
+{$SITE_ADDRESS:http://localhost} {
+	encode zstd gzip
+
+	handle_path /api/* {
+		reverse_proxy api:4000
+	}
+
+	handle /socket.io/* {
+		reverse_proxy api:4000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}
