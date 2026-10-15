@@ -135,7 +135,7 @@ function WordCloud({ words, large }: { words: { word: string; count: number }[];
   const max = Math.max(...counts);
   const [minRem, maxRem] = large ? [1.25, 4] : [0.95, 1.9];
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center leading-tight">
+    <div className="flex flex-col items-center gap-1 text-center leading-tight">
       <AnimatePresence>
         {words.map((w) => {
           const ratio = max === min ? 1 : (w.count - min) / (max - min);

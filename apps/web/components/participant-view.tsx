@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
+import { HOME_URL } from '@/lib/config';
 import { T, errorMessageFor } from '@/lib/strings';
 import { useRoom, type ConnState } from '@/lib/use-room';
 import { Logo } from './logo';
@@ -26,7 +26,7 @@ export function ParticipantView({ code }: { code: string }) {
   if (state.ended) {
     return (
       <Shell code={code} conn="connected" count={null}>
-        <EndedCard />
+        <RedirectCard title={T.ended.title} body={T.ended.body} />
       </Shell>
     );
   }
@@ -38,7 +38,7 @@ export function ParticipantView({ code }: { code: string }) {
     const body = notFound ? T.errors.notFoundBody : ended ? T.errors.roomEndedBody : errorMessageFor(state.errorCode);
     return (
       <Shell code={code} conn="error" count={null}>
-        <Card title={title} body={body} />
+        {ended ? <RedirectCard title={title} body={body} /> : <Card title={title} body={body} />}
       </Shell>
     );
   }
@@ -180,23 +180,22 @@ function WaitingCard() {
   );
 }
 
-/** Sunum bitince gösterilir; geri sayım bitince katılımcı ana sayfaya yönlendirilir. */
+/** Oturum bitince (ya da oda kapalıyken) geri sayım yapılır ve kullanıcı ana sayfaya yönlendirilir. */
 const END_REDIRECT_SECONDS = 5;
 
-function EndedCard() {
-  const router = useRouter();
+function RedirectCard({ title, body }: { title: string; body: string }) {
   const [seconds, setSeconds] = useState(END_REDIRECT_SECONDS);
 
   useEffect(() => {
     if (seconds <= 0) {
-      router.replace('/');
+      window.location.replace(HOME_URL);
       return;
     }
     const timer = setTimeout(() => setSeconds((s) => s - 1), 1000);
     return () => clearTimeout(timer);
-  }, [seconds, router]);
+  }, [seconds]);
 
-  return <Card title={T.ended.title} body={`${T.ended.body} ${T.ended.redirect(Math.max(seconds, 0))}`} />;
+  return <Card title={title} body={`${body} ${T.ended.redirectMessage}… ${Math.max(seconds, 0)}`} />;
 }
 
 function Card({ title, body }: { title: string; body: string }) {
