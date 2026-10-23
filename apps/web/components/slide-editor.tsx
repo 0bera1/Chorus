@@ -1,7 +1,7 @@
 'use client';
 
 import type { SlideType } from '@chorus/shared';
-import { T } from '@/lib/strings';
+import { useT } from '@/lib/i18n/locale-context';
 import { MAX_OPTIONS, MIN_OPTIONS, SLIDE_TYPES, newSlide, uid, type SlideDraft } from '@/lib/slide-draft';
 
 interface Props {
@@ -17,6 +17,8 @@ const smallBtn =
 
 /** Slayt editörü: ekle, sırala, sil, tip seç, seçenekleri düzenle. */
 export function SlideEditor({ slides, onChange, disabled = false }: Props) {
+  const t = useT();
+
   const update = (index: number, patch: Partial<SlideDraft>) =>
     onChange(slides.map((s, i) => (i === index ? { ...s, ...patch } : s)));
 
@@ -34,7 +36,7 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap gap-2" role="group" aria-label={T.editor.addSlide}>
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t.editor.addSlide}>
         {SLIDE_TYPES.map((type) => (
           <button
             key={type}
@@ -43,12 +45,12 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
             onClick={() => add(type)}
             className="min-h-11 rounded-xl border-2 border-dashed border-line px-4 font-semibold transition hover:border-accent hover:text-accent disabled:opacity-40"
           >
-            + {T.editor.typeLabels[type]}
+            + {t.editor.typeLabels[type]}
           </button>
         ))}
       </div>
 
-      {slides.length === 0 && <p className="rounded-2xl bg-surface p-6 text-center text-muted">{T.editor.empty}</p>}
+      {slides.length === 0 && <p className="rounded-2xl bg-surface p-6 text-center text-muted">{t.editor.empty}</p>}
 
       <ol className="flex flex-col gap-5">
         {slides.map((slide, index) => (
@@ -58,10 +60,10 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft font-bold text-accent">
                   {index + 1}
                 </span>
-                <span className="font-semibold">{T.editor.typeLabels[slide.type]}</span>
+                <span className="font-semibold">{t.editor.typeLabels[slide.type]}</span>
               </div>
               <div className="flex gap-2">
-                <button type="button" className={smallBtn} onClick={() => move(index, -1)} disabled={disabled || index === 0} aria-label={T.editor.moveUp}>
+                <button type="button" className={smallBtn} onClick={() => move(index, -1)} disabled={disabled || index === 0} aria-label={t.editor.moveUp}>
                   ↑
                 </button>
                 <button
@@ -69,31 +71,31 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
                   className={smallBtn}
                   onClick={() => move(index, 1)}
                   disabled={disabled || index === slides.length - 1}
-                  aria-label={T.editor.moveDown}
+                  aria-label={t.editor.moveDown}
                 >
                   ↓
                 </button>
                 <button type="button" className={`${smallBtn} text-red-500`} onClick={() => remove(index)} disabled={disabled}>
-                  {T.editor.removeSlide}
+                  {t.editor.removeSlide}
                 </button>
               </div>
             </div>
 
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-2 text-sm font-medium">
-                {T.editor.questionLabel}
+                {t.editor.questionLabel}
                 <textarea
                   value={slide.question}
                   onChange={(e) => update(index, { question: e.target.value })}
                   maxLength={300}
                   rows={2}
                   disabled={disabled}
-                  placeholder={T.editor.questionPlaceholder}
+                  placeholder={t.editor.questionPlaceholder}
                   className={field}
                 />
               </label>
 
-              <p className="text-sm text-muted">{T.editor.hints[slide.type]}</p>
+              <p className="text-sm text-muted">{t.editor.hints[slide.type]}</p>
 
               {slide.type === 'multiple_choice' && (
                 <div className="flex flex-col gap-2">
@@ -104,8 +106,8 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
                         value={option.text}
                         maxLength={120}
                         disabled={disabled}
-                        aria-label={`${T.editor.optionPlaceholder} ${optIndex + 1}`}
-                        placeholder={`${T.editor.optionPlaceholder} ${optIndex + 1}`}
+                        aria-label={`${t.editor.optionPlaceholder} ${optIndex + 1}`}
+                        placeholder={`${t.editor.optionPlaceholder} ${optIndex + 1}`}
                         onChange={(e) =>
                           update(index, {
                             options: slide.options.map((o) => (o.id === option.id ? { ...o, text: e.target.value } : o)),
@@ -119,7 +121,7 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
                         disabled={disabled || slide.options.length <= MIN_OPTIONS}
                         onClick={() => update(index, { options: slide.options.filter((o) => o.id !== option.id) })}
                       >
-                        {T.editor.removeOption}
+                        {t.editor.removeOption}
                       </button>
                     </div>
                   ))}
@@ -129,7 +131,7 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
                     disabled={disabled || slide.options.length >= MAX_OPTIONS}
                     onClick={() => update(index, { options: [...slide.options, { id: uid(), text: '' }] })}
                   >
-                    + {T.editor.addOption}
+                    + {t.editor.addOption}
                   </button>
                 </div>
               )}
@@ -144,7 +146,7 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
                       onChange={(e) => update(index, { allowVoteChange: e.target.checked })}
                       className="h-5 w-5 accent-[var(--accent)]"
                     />
-                    {T.editor.allowVoteChange}
+                    {t.editor.allowVoteChange}
                   </label>
                 )}
                 {slide.type === 'open_text' && (
@@ -156,7 +158,7 @@ export function SlideEditor({ slides, onChange, disabled = false }: Props) {
                       onChange={(e) => update(index, { hideOpenText: e.target.checked })}
                       className="h-5 w-5 accent-[var(--accent)]"
                     />
-                    {T.editor.hideOpenText}
+                    {t.editor.hideOpenText}
                   </label>
                 )}
               </div>

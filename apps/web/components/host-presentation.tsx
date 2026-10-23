@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
-import { api, ApiError } from '@/lib/api';
-import { T } from '@/lib/strings';
+import { api } from '@/lib/api';
+import { errorTextFor } from '@/lib/i18n/error-message';
+import { useT } from '@/lib/i18n/locale-context';
 import { getPresentationKey, saveHostKey, savePresentationKey } from '@/lib/room-storage';
 import { fromServer, toPayload, type SlideDraft } from '@/lib/slide-draft';
 import { validateDraft } from '@/lib/validate-draft';
@@ -17,6 +18,7 @@ interface PresentationDto {
 
 /** Host düzenleme ekranı: slaytları düzenle, kaydet, odayı başlat. */
 export function HostPresentation({ id }: { id: string }) {
+  const t = useT();
   const router = useRouter();
   const [hostKey, setHostKey] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -44,15 +46,17 @@ export function HostPresentation({ id }: { id: string }) {
         setTitle(p.title);
         setSlides(p.slides.map(fromServer));
       })
-      .catch((err) => setError(err instanceof ApiError ? err.message : T.errors.generic))
+      .catch((err) => setError(errorTextFor(t, err)))
       .finally(() => setBusy(null));
+    // Yalnızca sayfa açılırken yüklenir; dil değişikliği veriyi yeniden çekmemeli
   }, [id]);
 
   const save = async (): Promise<boolean> => {
     if (!hostKey) return false;
+    // Başlık sonradan da girilebilsin diye kayıtta yalnızca soru ve seçenek kontrol edilir
     const problem = validateDraft(title, slides);
-    if (problem && problem !== T.editor.validationTitle) {
-      setError(problem);
+    if (problem && problem !== 'title') {
+      setError(t.editor.validation[problem]);
       return false;
     }
     setError(null);
@@ -66,7 +70,7 @@ export function HostPresentation({ id }: { id: string }) {
       setSaved(true);
       return true;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : T.errors.generic);
+      setError(errorTextFor(t, err));
       return false;
     } finally {
       setBusy(null);
@@ -75,7 +79,7 @@ export function HostPresentation({ id }: { id: string }) {
 
   const start = async () => {
     if (!hostKey) return;
-    if (slides.length === 0) return setError(T.editor.validationNoSlides);
+    if (slides.length === 0) return setError(t.editor.validation.noSlides);
     if (!(await save())) return;
 
     setBusy('start');
@@ -84,18 +88,18 @@ export function HostPresentation({ id }: { id: string }) {
       saveHostKey(room.code, hostKey);
       router.push(`/present/${room.code}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : T.errors.generic);
+      setError(errorTextFor(t, err));
       setBusy(null);
     }
   };
 
-  if (!ready) return <Notice title={T.editor.loading} />;
+  if (!ready) return <Notice title={t.editor.loading} />;
 
   if (!hostKey) {
     return (
-      <Notice title={T.errors.forbidden} body={T.editor.needKey}>
+      <Notice title={t.errors.forbidden} body={t.editor.needKey}>
         <button type="button" onClick={() => router.push('/create')} className="mt-6 min-h-12 rounded-xl bg-accent px-6 font-bold text-accent-fg">
-          {T.editor.newInstead}
+          {t.editor.newInstead}
         </button>
       </Notice>
     );
@@ -104,15 +108,13 @@ export function HostPresentation({ id }: { id: string }) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-10">
       <header className="flex flex-col gap-2">
-        <p className="text-sm uppercase tracking-widest text-muted">{T.editor.editTitle}</p>
+        <p className="text-sm uppercase tracking-widest text-muted">{t.editor.editTitle}</p>
         <h1 className="text-4xl font-black tracking-tight">{title || '…'}</h1>
-        <p className="text-muted">
-          {slides.length} {T.editor.slideCount}
-        </p>
+        <p className="text-muted">{t.editor.slideCount(slides.length)}</p>
       </header>
 
       {busy === 'load' ? (
-        <p className="animate-pulse text-muted">{T.editor.loading}</p>
+        <p className="animate-pulse text-muted">{t.editor.loading}</p>
       ) : (
         <SlideEditor
           slides={slides}
@@ -131,14 +133,14 @@ export function HostPresentation({ id }: { id: string }) {
       )}
 
       <div className="sticky bottom-0 -mx-5 flex flex-wrap items-center justify-end gap-3 border-t border-line bg-bg/90 px-5 py-4 backdrop-blur">
-        {saved && <span className="mr-auto text-sm font-medium text-success">{T.editor.saved}</span>}
+        {saved && <span className="mr-auto text-sm font-medium text-success">{t.editor.saved}</span>}
         <button
           type="button"
           onClick={save}
           disabled={busy !== null}
           className="min-h-12 rounded-xl border-2 border-line bg-surface px-6 font-bold disabled:opacity-60"
         >
-          {busy === 'save' ? T.editor.saving : T.editor.save}
+          {busy === 'save' ? t.editor.saving : t.editor.save}
         </button>
         <button
           type="button"
@@ -146,7 +148,7 @@ export function HostPresentation({ id }: { id: string }) {
           disabled={busy !== null}
           className="min-h-12 rounded-xl bg-accent px-6 font-bold text-accent-fg shadow-card disabled:opacity-60"
         >
-          {busy === 'start' ? T.editor.starting : T.editor.start}
+          {busy === 'start' ? t.editor.starting : t.editor.start}
         </button>
       </div>
     </div>

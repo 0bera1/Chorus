@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { PublicSlide, QaQuestion, VotePayload } from '@chorus/shared';
-import { T, errorMessageFor } from '@/lib/strings';
+import { errorMessageFor } from '@/lib/i18n/error-message';
+import { useT } from '@/lib/i18n/locale-context';
 import type { Ack } from '@/lib/use-room';
 
 const LETTERS = 'ABCDEFGH';
@@ -16,6 +17,7 @@ interface VoteProps {
 
 /** Oy ekranı: slayt tipine göre tek elle dokunulabilir büyük alanlar. */
 export function VoteInput({ slide, myVote, onVote }: VoteProps) {
+  const t = useT();
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -26,7 +28,7 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
     setBusy(true);
     const res = await onVote(payload);
     setBusy(false);
-    if (!res.ok) setError(errorMessageFor(res.error?.code, res.error?.message));
+    if (!res.ok) setError(errorMessageFor(t, res.error?.code));
   };
 
   const submitText = (e: FormEvent) => {
@@ -40,7 +42,7 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
   return (
     <div className="flex flex-col gap-4">
       {slide.type === 'multiple_choice' && (
-        <ul className="flex flex-col gap-3" role="radiogroup" aria-label="Seçenekler">
+        <ul className="flex flex-col gap-3" role="radiogroup" aria-label={t.a11y.options}>
           {slide.options.map((option, i) => {
             const selected = myVote?.type === 'multiple_choice' && myVote.optionId === option.id;
             return (
@@ -64,7 +66,7 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
                     {LETTERS[i]}
                   </span>
                   <span className="flex-1">{option.text}</span>
-                  {selected && <span aria-label="Seçili">✓</span>}
+                  {selected && <span aria-label={t.a11y.selected}>✓</span>}
                 </button>
               </li>
             );
@@ -73,7 +75,7 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
       )}
 
       {slide.type === 'scale' && (
-        <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Derecelendirme">
+        <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label={t.a11y.rating}>
           {[1, 2, 3, 4, 5].map((value) => {
             const selected = myVote?.type === 'scale' && myVote.value === value;
             return (
@@ -97,8 +99,8 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
       )}
       {slide.type === 'scale' && (
         <div className="flex justify-between text-sm text-muted">
-          <span>{T.vote.scaleLow}</span>
-          <span>{T.vote.scaleHigh}</span>
+          <span>{t.vote.scaleLow}</span>
+          <span>{t.vote.scaleHigh}</span>
         </div>
       )}
 
@@ -110,8 +112,8 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
               onChange={(e) => setDraft(e.target.value)}
               disabled={busy || locked}
               maxLength={30}
-              placeholder={myVote ? '' : T.vote.wordPlaceholder}
-              aria-label={T.vote.wordPlaceholder}
+              placeholder={myVote ? '' : t.vote.wordPlaceholder}
+              aria-label={t.vote.wordPlaceholder}
               className="min-h-16 w-full rounded-2xl border-2 border-line bg-surface px-5 text-lg outline-none focus:border-accent"
             />
           ) : (
@@ -121,8 +123,8 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
               disabled={busy || locked}
               maxLength={280}
               rows={4}
-              placeholder={T.vote.textPlaceholder}
-              aria-label={T.vote.textPlaceholder}
+              placeholder={t.vote.textPlaceholder}
+              aria-label={t.vote.textPlaceholder}
               className="w-full rounded-2xl border-2 border-line bg-surface px-5 py-4 text-lg outline-none focus:border-accent"
             />
           )}
@@ -131,7 +133,7 @@ export function VoteInput({ slide, myVote, onVote }: VoteProps) {
             disabled={busy || locked || draft.trim().length === 0}
             className="min-h-14 rounded-2xl bg-accent px-6 text-lg font-bold text-accent-fg transition active:scale-[0.99] disabled:opacity-50"
           >
-            {T.vote.submit}
+            {t.vote.submit}
           </button>
         </form>
       )}
@@ -150,6 +152,7 @@ function VoteFeedback({
   allowChange: boolean;
   error: string | null;
 }) {
+  const t = useT();
   const reduce = useReducedMotion();
   if (error) return <p role="alert" className="text-center font-medium text-red-500">{error}</p>;
   if (!myVote) return null;
@@ -160,8 +163,8 @@ function VoteFeedback({
       role="status"
       className="rounded-2xl bg-accent-soft px-5 py-4 text-center"
     >
-      <p className="font-bold text-accent">{T.vote.thanks}</p>
-      {allowChange && <p className="mt-1 text-sm text-muted">{T.vote.changeAllowed}</p>}
+      <p className="font-bold text-accent">{t.vote.thanks}</p>
+      {allowChange && <p className="mt-1 text-sm text-muted">{t.vote.changeAllowed}</p>}
     </motion.div>
   );
 }
@@ -174,6 +177,7 @@ interface QaProps {
 
 /** Soru-cevap paneli: soru yaz, beğen, en çok beğenilen üste çıkar. */
 export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
+  const t = useT();
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [upvoted, setUpvoted] = useState<Set<string>>(() => new Set());
@@ -188,7 +192,7 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
     try {
       const res = await onAsk(text.trim());
       if (res.ok) setText('');
-      else setError(errorMessageFor(res.error?.code, res.error?.message));
+      else setError(errorMessageFor(t, res.error?.code));
     } finally {
       setSending(false);
     }
@@ -198,7 +202,7 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
     setError(null);
     const res = await onUpvote(id);
     if (res.ok || res.error?.code === 'already_upvoted') setUpvoted((prev) => new Set(prev).add(id));
-    else setError(errorMessageFor(res.error?.code, res.error?.message));
+    else setError(errorMessageFor(t, res.error?.code));
   };
 
   return (
@@ -209,8 +213,8 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
           onChange={(e) => setText(e.target.value)}
           maxLength={280}
           rows={3}
-          placeholder={T.qa.askPlaceholder}
-          aria-label={T.qa.askPlaceholder}
+          placeholder={t.qa.askPlaceholder}
+          aria-label={t.qa.askPlaceholder}
           className="w-full rounded-2xl border-2 border-line bg-surface px-5 py-4 text-lg outline-none focus:border-accent"
         />
         <button
@@ -218,13 +222,13 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
           disabled={sending || text.trim().length < 3}
           className="min-h-14 rounded-2xl bg-accent px-6 text-lg font-bold text-accent-fg disabled:opacity-50"
         >
-          {T.qa.ask}
+          {t.qa.ask}
         </button>
       </form>
       {error && <p role="alert" className="text-center font-medium text-red-500">{error}</p>}
 
       {questions.length === 0 ? (
-        <p className="text-center text-muted">{T.qa.empty}</p>
+        <p className="text-center text-muted">{t.qa.empty}</p>
       ) : (
         <ol className="flex flex-col gap-3">
           {questions.map((q) => {
@@ -236,7 +240,7 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
                   type="button"
                   onClick={() => upvote(q.id)}
                   disabled={done}
-                  aria-label={`${T.qa.upvote}: ${q.upvotes}`}
+                  aria-label={`${t.qa.upvote}: ${q.upvotes}`}
                   className={`min-h-12 min-w-16 rounded-xl px-3 font-bold tabular-nums transition ${
                     done ? 'bg-accent text-accent-fg' : 'bg-accent-soft text-accent hover:bg-accent hover:text-accent-fg'
                   } disabled:cursor-default`}
@@ -251,4 +255,3 @@ export function QaPanel({ questions, onAsk, onUpvote }: QaProps) {
     </div>
   );
 }
-

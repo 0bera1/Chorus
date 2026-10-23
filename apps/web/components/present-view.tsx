@@ -3,7 +3,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { APP_URL } from '@/lib/config';
-import { T } from '@/lib/strings';
+import { useT } from '@/lib/i18n/locale-context';
 import { getHostKey } from '@/lib/room-storage';
 import { useRoom, type ConnState } from '@/lib/use-room';
 import { Logo } from './logo';
@@ -12,6 +12,7 @@ import { ResultsChart } from './results';
 
 /** Sunum ekranı: tam ekran, yüksek kontrast, uzaktan okunabilir. Host kontrolleri alt barda. */
 export function PresentView({ code }: { code: string }) {
+  const t = useT();
   const hostKey = getHostKey(code);
   const { state, actions } = useRoom({ code, role: 'host', hostKey: hostKey ?? undefined, enabled: Boolean(hostKey) });
   const joinUrl = `${APP_URL}/j/${code}`;
@@ -38,7 +39,7 @@ export function PresentView({ code }: { code: string }) {
   if (!hostKey) {
     return (
       <Screen>
-        <Message title={T.errors.forbidden} body={T.present.noKey} />
+        <Message title={t.errors.forbidden} body={t.present.noKey} />
       </Screen>
     );
   }
@@ -46,7 +47,7 @@ export function PresentView({ code }: { code: string }) {
   if (state.ended) {
     return (
       <Screen>
-        <Message title={T.ended.title} body={T.ended.body} />
+        <Message title={t.ended.title} body={t.ended.body} />
       </Screen>
     );
   }
@@ -54,7 +55,7 @@ export function PresentView({ code }: { code: string }) {
   if (state.errorCode) {
     return (
       <Screen>
-        <Message title={T.errors.generic} body={state.errorCode === 'forbidden' ? T.errors.forbiddenBody : T.errors.notFoundBody} />
+        <Message title={t.errors.generic} body={state.errorCode === 'forbidden' ? t.errors.forbiddenBody : t.errors.notFoundBody} />
       </Screen>
     );
   }
@@ -66,19 +67,19 @@ export function PresentView({ code }: { code: string }) {
   return (
     <Screen>
       {/* Üst bilgi: oda kodu, katılımcı sayısı, bağlantı */}
-      <header className="flex items-start justify-between gap-6">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <Logo size={40} />
           <div>
-            <p className="text-sm uppercase tracking-widest text-muted">{T.present.roomCode}</p>
-            <p className="text-3xl font-black tabular-nums tracking-wider">{code}</p>
+            <p className="text-sm uppercase tracking-widest text-muted">{t.present.roomCode}</p>
+            <p className="text-2xl font-black tabular-nums tracking-wider sm:text-3xl">{code}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-lg">
-          <span className="rounded-full bg-accent-soft px-4 py-2 font-bold tabular-nums text-accent" aria-live="polite">
-            {state.participantCount} {T.present.participants}
+        <div className="flex flex-wrap items-center gap-3 text-base sm:gap-4 sm:text-lg">
+          <span className="whitespace-nowrap rounded-full bg-accent-soft px-4 py-2 font-bold tabular-nums text-accent" aria-live="polite">
+            {t.present.participants(state.participantCount)}
           </span>
-          <span className="text-muted">{conn === 'connected' ? T.conn.connected : T.conn.reconnecting}</span>
+          <span className="text-muted">{conn === 'connected' ? t.conn.connected : t.conn.reconnecting}</span>
         </div>
       </header>
 
@@ -94,24 +95,24 @@ export function PresentView({ code }: { code: string }) {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="flex w-full max-w-5xl flex-col gap-10"
             >
-              <h1 className="text-center text-5xl font-extrabold leading-tight tracking-tight md:text-7xl">
+              <h1 className="text-center text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-7xl">
                 {slide.question}
               </h1>
               {!slide.settings.votingOpen && slide.type !== 'qa' && (
-                <p className="text-center text-2xl text-muted">{T.vote.closed}</p>
+                <p className="text-center text-2xl text-muted">{t.vote.closed}</p>
               )}
               {hasResults && state.results && (
                 <ResultsChart slide={slide} results={state.results.data} large />
               )}
               {!hasResults && slide.type !== 'qa' && slide.settings.votingOpen && (
-                <p className="text-center text-2xl text-muted">{T.results.empty}</p>
+                <p className="text-center text-2xl text-muted">{t.results.empty}</p>
               )}
             </motion.div>
           ) : (
             <motion.div key="lobby" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-6 text-center">
               <Logo size={120} animated />
-              <p className="text-4xl font-bold">{T.waiting.title}</p>
-              <p className="text-xl text-muted">{T.present.joinHint}</p>
+              <p className="text-4xl font-bold">{t.waiting.title}</p>
+              <p className="text-xl text-muted">{t.present.joinHint}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -119,7 +120,7 @@ export function PresentView({ code }: { code: string }) {
 
       {/* Köşede QR: katılımcılar telefonla tarar */}
       <div className="pointer-events-none fixed bottom-24 right-6 hidden flex-col items-center gap-2 md:flex">
-        <QrCode value={joinUrl} size={150} label={`${T.present.roomCode} ${code}`} />
+        <QrCode value={joinUrl} size={150} label={`${t.present.roomCode} ${code}`} />
         <p className="text-sm font-semibold text-muted">{code}</p>
       </div>
 
@@ -131,7 +132,7 @@ export function PresentView({ code }: { code: string }) {
         onToggleVoting={() => actions.toggleVoting(!(slide?.settings.votingOpen ?? false))}
         onToggleResults={() => actions.toggleResults(!(slide?.settings.showResults ?? false))}
         onEnd={async () => {
-          if (window.confirm(T.present.endConfirm)) await actions.endRoom();
+          if (window.confirm(t.present.endConfirm)) await actions.endRoom();
         }}
       />
     </Screen>
@@ -140,7 +141,7 @@ export function PresentView({ code }: { code: string }) {
 
 function Screen({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col gap-6 px-6 pb-28 pt-6 md:px-12">{children}</div>
+    <div className="flex min-h-dvh flex-col gap-6 px-4 pb-44 pt-5 sm:px-6 md:px-12 md:pb-28 md:pt-6">{children}</div>
   );
 }
 
@@ -170,22 +171,23 @@ function Controls({
   onToggleResults: () => void;
   onEnd: () => void;
 }) {
+  const t = useT();
   const slide = state.slide;
   const btn =
-    'min-h-12 rounded-xl border border-line bg-surface px-4 text-base font-semibold shadow-card transition hover:border-accent disabled:opacity-40';
+    'min-h-11 rounded-xl border border-line bg-surface px-3 text-sm font-semibold shadow-card transition hover:border-accent disabled:opacity-40 sm:min-h-12 sm:px-4 sm:text-base';
   return (
     <nav
-      aria-label="Sunum kontrolleri"
-      className="fixed inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-3 border-t border-line bg-bg/90 px-4 py-4 backdrop-blur"
+      aria-label={t.a11y.controls}
+      className="fixed inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-2 border-t border-line bg-bg/90 px-3 py-3 backdrop-blur sm:gap-3 sm:px-4 sm:py-4"
     >
       {state.slideCount === 0 || state.slideIndex < 0 ? (
         <button type="button" onClick={onStart} disabled={state.slideCount === 0} className={`${btn} bg-accent text-accent-fg`}>
-          {T.present.next}
+          {t.present.next}
         </button>
       ) : (
         <>
-          <button type="button" onClick={onPrev} disabled={state.slideIndex <= 0} className={btn} aria-label={T.present.previous}>
-            ← {T.present.previous}
+          <button type="button" onClick={onPrev} disabled={state.slideIndex <= 0} className={btn} aria-label={t.present.previous}>
+            ← {t.present.previous}
           </button>
           <span className="min-w-24 text-center font-bold tabular-nums" aria-live="polite">
             {state.slideIndex + 1} / {state.slideCount}
@@ -195,26 +197,25 @@ function Controls({
             onClick={onNext}
             disabled={state.slideIndex >= state.slideCount - 1}
             className={btn}
-            aria-label={T.present.next}
+            aria-label={t.present.next}
           >
-            {T.present.next} →
+            {t.present.next} →
           </button>
         </>
       )}
       {slide && slide.type !== 'qa' && (
         <button type="button" onClick={onToggleVoting} className={btn} aria-pressed={slide.settings.votingOpen}>
-          {slide.settings.votingOpen ? T.present.votingOn : T.present.votingOff}
+          {slide.settings.votingOpen ? t.present.votingOn : t.present.votingOff}
         </button>
       )}
       {slide && slide.type !== 'qa' && (
         <button type="button" onClick={onToggleResults} className={btn} aria-pressed={slide.settings.showResults}>
-          {slide.settings.showResults ? T.present.resultsHide : T.present.resultsShow}
+          {slide.settings.showResults ? t.present.resultsHide : t.present.resultsShow}
         </button>
       )}
       <button type="button" onClick={onEnd} className={`${btn} text-red-500`}>
-        {T.present.endRoom}
+        {t.present.endRoom}
       </button>
     </nav>
   );
 }
-

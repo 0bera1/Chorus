@@ -1,5 +1,4 @@
 import { API_URL } from './config';
-import { T } from './strings';
 
 export class ApiError extends Error {
   constructor(
@@ -19,7 +18,10 @@ interface RequestOptions {
   hostKey?: string;
 }
 
-/** REST çağrısı. Sunucunun { error: { code, message } } biçimini ApiError'a çevirir. */
+/**
+ * REST çağrısı. Sunucunun { error: { code, message } } biçimini ApiError'a çevirir.
+ * Kullanıcıya görünen metin UI tarafında code üzerinden yerelleştirilir.
+ */
 export async function api<T>(path: string, { method = 'GET', body, hostKey }: RequestOptions = {}): Promise<T> {
   let res: Response;
   try {
@@ -33,14 +35,14 @@ export async function api<T>(path: string, { method = 'GET', body, hostKey }: Re
       cache: 'no-store',
     });
   } catch {
-    throw new ApiError('network', T.errors.offline, 0);
+    throw new ApiError('network', 'Network error', 0);
   }
 
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     throw new ApiError(
       data?.error?.code ?? 'generic',
-      data?.error?.message ?? T.errors.generic,
+      data?.error?.message ?? 'Request failed',
       res.status,
       data?.error?.details,
     );

@@ -9,7 +9,7 @@ export function QrCode({ value, size = 160, label }: { value: string; size?: num
 
   useEffect(() => {
     let active = true;
-    QRCode.toDataURL(value, { margin: 1, width: size * 2, color: { dark: '#17142a', light: '#ffffff' } })
+    QRCode.toDataURL(value, { margin: 1, width: size * 2, color: { dark: '#0f2622', light: '#ffffff' } })
       .then((url) => active && setSrc(url))
       .catch(() => active && setSrc(null));
     return () => {

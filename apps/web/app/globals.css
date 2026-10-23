@@ -1,48 +1,39 @@
 @import 'tailwindcss';
 
 /*
- * Chorus tema tokenları. Tek vurgu rengi (mor) + nötr tonlar.
- * Açık tema varsayılan; koyu tema sistem tercihine veya data-theme="dark" ile gelir.
+ * Chorus tema tokenları. Kâğıt ve mürekkep tabanı; vurgu: koyu teal (marka),
+ * canlılık işareti: amber (dokunma, canlı durum). Tema <html data-theme> ile seçilir.
  */
 :root {
-  --bg: #f7f5ff;
+  color-scheme: light;
+  --bg: #f6f5f0;
   --surface: #ffffff;
-  --fg: #17142a;
-  --muted: #5f5b75;
-  --line: #e3dfef;
-  --accent: #6d3bf5;
+  --fg: #13201d;
+  --muted: #5a6a66;
+  --line: #e0ddd2;
+  --accent: #0f6f66;
   --accent-fg: #ffffff;
-  --accent-soft: #ece5ff;
-  --success: #0f9d6b;
-  --shadow: 0 10px 30px -12px rgb(40 20 90 / 0.25);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #0d0b1a;
-    --surface: #17142a;
-    --fg: #f5f3ff;
-    --muted: #a7a2c2;
-    --line: #2c2847;
-    --accent: #a98bff;
-    --accent-fg: #0d0b1a;
-    --accent-soft: #241f42;
-    --success: #4ad8a0;
-    --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
-  }
+  --accent-soft: #e2efeb;
+  --highlight: #e8922e;
+  --success: #15803d;
+  --shadow: 0 1px 2px rgb(19 32 29 / 0.06), 0 12px 32px -14px rgb(19 32 29 / 0.22);
+  --overlay: rgb(12 20 18 / 0.62);
 }
 
 :root[data-theme='dark'] {
-  --bg: #0d0b1a;
-  --surface: #17142a;
-  --fg: #f5f3ff;
-  --muted: #a7a2c2;
-  --line: #2c2847;
-  --accent: #a98bff;
-  --accent-fg: #0d0b1a;
-  --accent-soft: #241f42;
-  --success: #4ad8a0;
-  --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+  --bg: #0a1210;
+  --surface: #111c19;
+  --fg: #eef5f2;
+  --muted: #9bb1ab;
+  --line: #24363180;
+  --accent: #4fd1bf;
+  --accent-fg: #06201b;
+  --accent-soft: #15302b;
+  --highlight: #f5b35f;
+  --success: #4ade80;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -16px rgb(0 0 0 / 0.7);
+  --overlay: rgb(3 8 7 / 0.8);
 }
 
 @theme inline {
@@ -54,9 +45,10 @@
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
+  --color-highlight: var(--highlight);
   --color-success: var(--success);
   --shadow-card: var(--shadow);
-  --font-sans: var(--font-geist-sans, system-ui), 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--font-manrope), system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
 html,
@@ -64,6 +56,9 @@ body {
   background: var(--bg);
   color: var(--fg);
   min-height: 100%;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
 }
 
 body {
@@ -72,7 +67,7 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--highlight);
   outline-offset: 3px;
   border-radius: 6px;
 }

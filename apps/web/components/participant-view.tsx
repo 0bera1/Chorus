@@ -3,7 +3,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { HOME_URL } from '@/lib/config';
-import { T, errorMessageFor } from '@/lib/strings';
+import { errorMessageFor } from '@/lib/i18n/error-message';
+import { useT } from '@/lib/i18n/locale-context';
 import { useRoom, type ConnState } from '@/lib/use-room';
 import { Logo } from './logo';
 import { ResultsChart } from './results';
@@ -11,6 +12,7 @@ import { QaPanel, VoteInput } from './participant-input';
 
 /** Katılımcı telefon ekranı: tek sütun, büyük dokunma alanları. */
 export function ParticipantView({ code }: { code: string }) {
+  const t = useT();
   const [nickname, setNickname] = useState('');
   const [joined, setJoined] = useState(false);
   const { state, actions } = useRoom({ code, role: 'participant', nickname, enabled: joined });
@@ -26,7 +28,7 @@ export function ParticipantView({ code }: { code: string }) {
   if (state.ended) {
     return (
       <Shell code={code} conn="connected" count={null}>
-        <RedirectCard title={T.ended.title} body={T.ended.body} />
+        <RedirectCard title={t.ended.title} body={t.ended.body} />
       </Shell>
     );
   }
@@ -34,8 +36,8 @@ export function ParticipantView({ code }: { code: string }) {
   if (state.errorCode) {
     const notFound = state.errorCode === 'not_found';
     const ended = state.errorCode === 'room_ended';
-    const title = notFound ? T.errors.notFound : ended ? T.errors.roomEnded : T.errors.generic;
-    const body = notFound ? T.errors.notFoundBody : ended ? T.errors.roomEndedBody : errorMessageFor(state.errorCode);
+    const title = notFound ? t.errors.notFound : ended ? t.errors.roomEnded : t.errors.generic;
+    const body = notFound ? t.errors.notFoundBody : ended ? t.errors.roomEndedBody : errorMessageFor(t, state.errorCode);
     return (
       <Shell code={code} conn="error" count={null}>
         {ended ? <RedirectCard title={title} body={body} /> : <Card title={title} body={body} />}
@@ -67,7 +69,7 @@ export function ParticipantView({ code }: { code: string }) {
           {slide.settings.votingOpen ? (
             <VoteInput slide={slide} myVote={state.myVote} onVote={actions.vote} />
           ) : (
-            <Card title={T.vote.closed} body={T.vote.closedBody} />
+            <Card title={t.vote.closed} body={t.vote.closedBody} />
           )}
           {slide.settings.showResults && state.results?.slideId === slide.id && (
             <div className="rounded-3xl border border-line bg-surface p-5 shadow-card">
@@ -91,18 +93,19 @@ function Shell({
   count: number | null;
   children: ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-5">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Logo size={26} />
-          <span className="font-bold tracking-tight">{T.brand}</span>
+          <span className="font-bold tracking-tight">{t.brand}</span>
           <span className="text-sm text-muted tabular-nums">{code}</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           {count !== null && (
             <span className="text-muted tabular-nums" aria-live="polite">
-              {count} {T.present.participants}
+              {t.present.participants(count)}
             </span>
           )}
           <ConnPill conn={conn} />
@@ -114,8 +117,9 @@ function Shell({
 }
 
 function ConnPill({ conn }: { conn: ConnState }) {
+  const t = useT();
   const label =
-    conn === 'connected' ? T.conn.connected : conn === 'reconnecting' ? T.conn.reconnecting : conn === 'error' ? T.conn.error : T.conn.connecting;
+    conn === 'connected' ? t.conn.connected : conn === 'reconnecting' ? t.conn.reconnecting : conn === 'error' ? t.conn.error : t.conn.connecting;
   const dot = conn === 'connected' ? 'bg-success' : conn === 'error' ? 'bg-red-500' : 'bg-accent animate-pulse';
   return (
     <span className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium" role="status">
@@ -134,6 +138,7 @@ function JoinForm({
   onNickname: (v: string) => void;
   onJoin: () => void;
 }) {
+  const t = useT();
   return (
     <form
       className="flex flex-1 flex-col justify-center gap-6"
@@ -142,18 +147,18 @@ function JoinForm({
         onJoin();
       }}
     >
-      <h1 className="text-3xl font-black tracking-tight">{T.join.title}</h1>
+      <h1 className="text-3xl font-black tracking-tight">{t.join.title}</h1>
       <label className="flex flex-col gap-2 text-sm font-medium">
-        {T.join.nicknameLabel}
+        {t.join.nicknameLabel}
         <input
           value={nickname}
           onChange={(e) => onNickname(e.target.value.slice(0, 24))}
-          placeholder={T.join.nicknamePlaceholder}
+          placeholder={t.join.nicknamePlaceholder}
           className="min-h-14 rounded-2xl border-2 border-line bg-surface px-5 text-lg outline-none focus:border-accent"
         />
       </label>
       <button type="submit" className="min-h-14 rounded-2xl bg-accent px-6 text-lg font-bold text-accent-fg">
-        {T.join.enter}
+        {t.join.enter}
       </button>
     </form>
   );
@@ -168,14 +173,15 @@ function Question({ id, text }: { id: string; text: string }) {
 }
 
 function WaitingCard() {
+  const t = useT();
   const reduce = useReducedMotion();
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 py-10 text-center">
       <motion.div initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }}>
         <Logo size={72} animated />
       </motion.div>
-      <h1 className="text-2xl font-bold">{T.waiting.title}</h1>
-      <p className="max-w-xs text-muted">{T.waiting.body}</p>
+      <h1 className="text-2xl font-bold">{t.waiting.title}</h1>
+      <p className="max-w-xs text-muted">{t.waiting.body}</p>
     </div>
   );
 }
@@ -184,6 +190,7 @@ function WaitingCard() {
 const END_REDIRECT_SECONDS = 5;
 
 function RedirectCard({ title, body }: { title: string; body: string }) {
+  const t = useT();
   const [seconds, setSeconds] = useState(END_REDIRECT_SECONDS);
 
   useEffect(() => {
@@ -195,7 +202,7 @@ function RedirectCard({ title, body }: { title: string; body: string }) {
     return () => clearTimeout(timer);
   }, [seconds]);
 
-  return <Card title={title} body={`${body} ${T.ended.redirectMessage}… ${Math.max(seconds, 0)}`} />;
+  return <Card title={title} body={`${body} ${t.ended.redirectIn(Math.max(seconds, 0))}`} />;
 }
 
 function Card({ title, body }: { title: string; body: string }) {
@@ -206,4 +213,3 @@ function Card({ title, body }: { title: string; body: string }) {
     </div>
   );
 }
-

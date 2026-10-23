@@ -1,9 +1,11 @@
 /**
- * Arayüz metinleri tek dosyada. Çeviri eklenirse bu nesne uyarlanır.
+ * Kaynak sözlük (Türkçe). Diğer dillerin tipi buradan çıkar: bir anahtar eklenirse
+ * tüm dil dosyalarında da karşılığı yazılmak zorundadır.
  */
-export const T = {
+export const tr = {
   brand: 'Chorus',
   slogan: 'Herkesin sesi, tek ekranda.',
+  languageLabel: 'Dil',
 
   landing: {
     heroTitle: 'Herkesin sesi, tek ekranda.',
@@ -19,7 +21,6 @@ export const T = {
     nicknameLabel: 'Takma ad (isteğe bağlı)',
     nicknamePlaceholder: 'Adın ya da bir lakap',
     enter: 'Katıl',
-    connecting: 'Bağlanıyor…',
   },
 
   conn: {
@@ -44,7 +45,6 @@ export const T = {
     textPlaceholder: 'Cevabını yaz',
     wordPlaceholder: 'Tek bir kelime',
     submit: 'Gönder',
-    alreadyVoted: 'Bu slayta zaten oy verdin.',
   },
 
   qa: {
@@ -53,20 +53,18 @@ export const T = {
     upvote: 'Beğen',
     upvoted: 'Beğendin',
     empty: 'Henüz soru yok. İlk soruyu sen sor!',
-    asked: 'Sorun eklendi.',
   },
 
   results: {
-    total: 'cevap',
     average: 'Ortalama',
     empty: 'Henüz cevap yok',
-    hidden: 'Sonuçlar sunum sahibi tarafından gizlendi',
+    responses: (n: number) => `${n} cevap`,
   },
 
   present: {
     roomCode: 'Oda kodu',
     joinHint: 'Telefonundan tara veya /j adresine gir',
-    participants: 'katılımcı',
+    participants: (n: number) => `${n} katılımcı`,
     previous: 'Önceki',
     next: 'Sonraki',
     votingOn: 'Oylamayı kapat',
@@ -81,7 +79,7 @@ export const T = {
   ended: {
     title: 'Sunum sona erdi',
     body: 'Katıldığın için teşekkürler!',
-    redirectMessage: 'Anasayfaya yönlendiriliyorsunuz',
+    redirectIn: (seconds: number) => `Anasayfaya yönlendiriliyorsunuz… ${seconds}`,
   },
 
   errors: {
@@ -95,8 +93,13 @@ export const T = {
     forbiddenBody: 'Bu sayfa için host anahtarı gerekli.',
     rateLimited: 'Çok hızlı işlem yapıyorsun, biraz bekle.',
     generic: 'Bir sorun oluştu. Lütfen tekrar dene.',
-    timeout: 'Sunucu yanıt vermedi, tekrar dene.',
     offline: 'Bağlantı yok, yeniden bağlanılıyor…',
+    voteClosed: 'Oylama kapalı',
+    alreadyVoted: 'Bu slayta zaten oy verdin.',
+    alreadyUpvoted: 'Bu soruyu zaten beğendin.',
+    notQa: 'Bu slaytta şu an bu işlem yapılamaz.',
+    noActiveSlide: 'Aktif slayt yok.',
+    validation: 'Girdiğin bilgileri kontrol et.',
   },
 
   editor: {
@@ -124,14 +127,15 @@ export const T = {
     create: 'Sunumu oluştur',
     creating: 'Oluşturuluyor…',
     loading: 'Sunum yükleniyor…',
-    slideCount: 'slayt',
+    slideCount: (n: number) => `${n} slayt`,
     needKey: 'Bu sunumu düzenlemek için host anahtarı gerekli. Anahtar yalnızca sunumu oluşturduğun tarayıcıda bulunur.',
     newInstead: 'Yeni bir sunum oluştur',
-    liveLocked: 'Sunum canlıyken slaytlar düzenlenemez.',
-    validationTitle: 'Sunuma bir başlık ver',
-    validationQuestion: 'Her slayt için bir soru yaz',
-    validationOptions: 'Çoktan seçmeli slaytlarda tüm seçenekleri doldur',
-    validationNoSlides: 'Başlatmadan önce en az bir slayt ekle',
+    validation: {
+      title: 'Sunuma bir başlık ver',
+      question: 'Her slayt için bir soru yaz',
+      options: 'Çoktan seçmeli slaytlarda tüm seçenekleri doldur',
+      noSlides: 'Başlatmadan önce en az bir slayt ekle',
+    },
     hints: {
       multiple_choice: 'Katılımcılar seçeneklerden birini seçer.',
       word_cloud: 'Katılımcılar tek bir kelime girer; sık yazılanlar büyür.',
@@ -153,34 +157,76 @@ export const T = {
     body: 'Hesap açmadan hemen dene. Örnek slaytlarla bir oda açılır; sunum ekranı ve katılımcı ekranı hazır gelir.',
     start: 'Demo odasını başlat',
     starting: 'Demo hazırlanıyor…',
+    presentationTitle: 'Chorus demo',
+    slides: {
+      choiceQuestion: 'Bir sunumda en çok neyi seversin?',
+      choiceOptions: ['Canlı grafikleri', 'Kısa ve net konuşmayı', 'Etkileşimli soruları', 'Hikâye anlatımını'],
+      cloudQuestion: 'Bu sunumu tek bir kelimeyle anlat',
+      scaleQuestion: 'Bu sunum ne kadar faydalı oldu? (1-5)',
+      textQuestion: 'Eklemek istediğin bir fikir var mı?',
+      qaQuestion: 'Bize bir soru sor',
+    },
+  },
+
+  tour: {
+    open: 'Öğret',
+    chooseTitle: 'Öğreticiyi nasıl izlemek istersin?',
+    chooseBody: 'Sahnede gerçek bir sunum canlandırılacak. Sunumu yapan ya da dinleyen olarak izleyebilirsin.',
+    presenterRole: { title: 'Sunumu yapan', body: 'Odayı aç, oylamayı başlat, sonuçları canlı izle.' },
+    participantRole: { title: 'Dinleyen', body: 'Telefondan katıl, oy ver, soru sor, sonuçları gör.' },
+    back: 'Rol seçimi',
+    play: 'Oynat',
+    pause: 'Duraklat',
+    next: 'İleri',
+    prev: 'Geri',
+    finish: 'Bitir',
+    close: 'Kapat',
+    stepOf: (current: number, total: number) => `${current} / ${total}`,
+    words: ['net', 'ilham verici', 'uzun', 'etkileşimli', 'faydalı', 'sıkıcı'],
+    questions: ['Bu konuyu bir örnekle anlatır mısınız?', 'Slaytlar paylaşılacak mı?', 'Sunum kaç dakika sürecek?'],
+    myQuestion: 'Slaytları daha sonra alabilir miyiz?',
+    myWord: 'ilham verici',
+    nickname: 'Ayşe',
+    presenterScenes: {
+      lobby: 'Oda açılır. Katılımcılar QR kodu okutup oda koduyla katılır.',
+      open: 'Oylamayı açmadan katılımcılar oy veremez. "Oylamayı aç" ile soruyu yayına alırsın.',
+      live: 'Oylar geldikçe grafik anında güncellenir.',
+      results: 'Sonuçları katılımcılara da gösterebilirsin; sen her zaman canlı görürsün.',
+      wordCloud: 'Kelimeler birleşir; sık yazılanlar büyür.',
+      scale: 'Ölçek sorularında ortalama puan canlı hesaplanır.',
+      qa: 'Soru-cevapta katılımcılar soru sorar, diğerleri beğenir.',
+      end: 'Sunum bitince odayı kapatırsın; katılımcılar ana sayfaya yönlendirilir.',
+    },
+    participantScenes: {
+      join: 'Oda kodunu girip takma adını yazarsın, sonra katılırsın. Hesap gerekmez.',
+      closed: 'Sunum sahibi oylamayı açmadan oy veremezsin.',
+      vote: 'Seçeneğe dokunarak oy verirsin; istersen oyunu sonradan değiştirebilirsin.',
+      results: 'Sunum sahibi sonuçları gösterince grafiği telefonunda da görürsün.',
+      wordCloud: 'Tek bir kelime yazıp gönderirsin.',
+      scale: '1 ile 5 arasında puan verirsin.',
+      qa: 'Soru yazıp gönderirsin; diğer soruları beğenerek öne çıkarabilirsin.',
+      end: 'Sunum bittiğinde ana sayfaya yönlendirilirsin.',
+    },
+  },
+
+  theme: {
+    label: 'Tema',
+    light: 'Açık',
+    dark: 'Koyu',
   },
 
   nav: {
-    home: 'Ana sayfa',
     create: 'Sunum oluştur',
     demo: 'Demoyu dene',
   },
-} as const;
 
-/** Sunucu hata kodunu kullanıcıya gösterilecek metne çevirir. */
-export function errorMessageFor(code: string | undefined, fallback?: string): string {
-  switch (code) {
-    case 'not_found':
-      return T.errors.notFound;
-    case 'room_ended':
-      return T.errors.roomEnded;
-    case 'room_full':
-      return T.errors.roomFull;
-    case 'forbidden':
-    case 'unauthorized':
-      return T.errors.forbidden;
-    case 'rate_limited':
-      return T.errors.rateLimited;
-    case 'timeout':
-      return T.errors.timeout;
-    case 'offline':
-      return T.errors.offline;
-    default:
-      return fallback ?? T.errors.generic;
-  }
-}
+  a11y: {
+    controls: 'Sunum kontrolleri',
+    options: 'Seçenekler',
+    selected: 'Seçili',
+    rating: 'Derecelendirme',
+    results: 'Sonuç grafiği',
+  },
+};
+
+export type Dictionary = typeof tr;
